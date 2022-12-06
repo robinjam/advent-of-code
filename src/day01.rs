@@ -1,23 +1,22 @@
-use std::{fs::File, io::{BufReader, BufRead}};
+use std::fs::read_to_string;
 
 pub fn run() {
-    let file = File::open("data/01.txt").unwrap();
-    let lines = BufReader::new(file).lines().map(|line| line.unwrap());
-    
-    let mut sums = vec![0];
-    for line in lines {
-        if line == "" {
-            sums.push(0);
-        }
-        else {
-            let prev_value = sums.pop().unwrap();
-            sums.push(prev_value + line.parse::<i32>().unwrap());
-        }
-    }
-    sums.sort();
-    sums.reverse();
+    let mut sums: Vec<i32> =
+        read_to_string("data/01.txt").
+        unwrap().
+        trim_end().
+        split("\n\n").
+        map(|block| {
+            block.
+                lines().
+                map(|line| line.parse::<i32>().unwrap()).
+                sum()
+        }).
+        collect();
+
+    sums.sort_unstable_by(|a, b| b.cmp(a));
 
     println!("Day 01");
-    println!("  Part 1: {}", sums.first().unwrap());
-    println!("  Part 2: {}", sums.iter().take(3).sum::<i32>());
+    println!("  Part 1: {}", sums[0]);
+    println!("  Part 2: {}", sums[0..3].iter().sum::<i32>());
 }
