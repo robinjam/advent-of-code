@@ -13,6 +13,7 @@ struct Round {
     my_move: Move,
 }
 
+#[derive(Debug, PartialEq)]
 enum Result {
     Lose,
     Draw,
@@ -31,6 +32,15 @@ fn move_from_char(c: char) -> Move {
     }
 }
 
+fn result_from_char(c: char) -> Result {
+    match c {
+        'X' => Result::Lose,
+        'Y' => Result::Draw,
+        'Z' => Result::Win,
+        _ => panic!()
+    }
+}
+
 fn parse_round(line: String) -> Round {
     let move_from_nth_char = |n| move_from_char(line.chars().nth(n).unwrap());
     Round{ their_move: move_from_nth_char(0), my_move: move_from_nth_char(2) }
@@ -41,6 +51,43 @@ fn test_parse_round() {
     assert_eq!(Round{ their_move: Move::Rock, my_move: Move::Paper }, parse_round("A Y".into()));
     assert_eq!(Round{ their_move: Move::Paper, my_move: Move::Rock }, parse_round("B X".into()));
     assert_eq!(Round{ their_move: Move::Scissors, my_move: Move::Scissors }, parse_round("C Z".into()));
+}
+
+fn parse_move_and_result(line: String) -> (Move, Result) {
+    let nth_char = |n| line.chars().nth(n).unwrap();
+    (move_from_char(nth_char(0)), result_from_char(nth_char(2)))
+}
+
+#[test]
+fn test_parse_move_and_result() {
+    assert_eq!((Move::Rock, Result::Draw), parse_move_and_result("A Y".into()));
+    assert_eq!((Move::Paper, Result::Lose), parse_move_and_result("B X".into()));
+    assert_eq!((Move::Scissors, Result::Win), parse_move_and_result("C Z".into()));
+}
+
+fn choose_strategy(their_move: Move, desired_result: Result) -> Round {
+    let my_move = match (&their_move, &desired_result) {
+        (Move::Rock, Result::Win) => Move::Paper,
+        (Move::Paper, Result::Win) => Move::Scissors,
+        (Move::Scissors, Result::Win) => Move::Rock,
+
+        (Move::Rock, Result::Draw) => Move::Rock,
+        (Move::Paper, Result::Draw) => Move::Paper,
+        (Move::Scissors, Result::Draw) => Move::Scissors,
+
+        (Move::Rock, Result::Lose) => Move::Scissors,
+        (Move::Paper, Result::Lose) => Move::Rock,
+        (Move::Scissors, Result::Lose) => Move::Paper,
+    };
+
+    Round{ their_move, my_move }
+}
+
+#[test]
+fn test_choose_strategy() {
+    assert_eq!(Round{ their_move: Move::Rock, my_move: Move::Rock }, choose_strategy(Move::Rock, Result::Draw));
+    assert_eq!(Round{ their_move: Move::Paper, my_move: Move::Rock }, choose_strategy(Move::Paper, Result::Lose));
+    assert_eq!(Round{ their_move: Move::Scissors, my_move: Move::Rock }, choose_strategy(Move::Scissors, Result::Win));
 }
 
 fn result(round: Round) -> Result {
@@ -83,10 +130,12 @@ fn test_score() {
 }
 
 pub fn run() {
-    let file = File::open("data/02.txt").unwrap();
-    let lines = BufReader::new(file).lines().map(|line| line.unwrap());
-    let score: i32 = lines.map(parse_round).map(score).sum();
+    let read_lines = || BufReader::new(File::open("data/02.txt").unwrap()).lines().map(|line| line.unwrap());
+
+    let part_1_score: i32 = read_lines().map(parse_round).map(score).sum();
+    let part_2_score: i32 = read_lines().map(parse_move_and_result).map(|(their_move, desired_result)| choose_strategy(their_move, desired_result)).map(score).sum();
 
     println!("Day 02");
-    println!("  Part 1: {}", score);
+    println!("  Part 1: {}", part_1_score);
+    println!("  Part 2: {}", part_2_score);
 }
