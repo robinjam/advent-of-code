@@ -30,13 +30,11 @@ fn score_2(line: &str) -> i32 {
     }
 }
 
-pub fn run() {
+pub fn run() -> (i32, i32) {
     let buf = read_to_string("data/02.txt").unwrap();
 
-    let part_1_score: i32 = buf.lines().map(score_1).sum();
-    let part_2_score: i32 = buf.lines().map(score_2).sum();
-
-    println!("Day 02");
-    println!("  Part 1: {}", part_1_score);
-    println!("  Part 2: {}", part_2_score);
+    (
+        buf.lines().map(score_1).sum(),
+        buf.lines().map(score_2).sum()
+    )
 }
