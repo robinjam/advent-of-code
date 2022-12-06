@@ -9,9 +9,11 @@ fn priority(c: &char) -> i32 {
 }
 
 pub fn run() -> (i32, i32) {
-    let part1: i32 = read_to_string("data/03.txt").
-        unwrap().
-        lines().
+    let buf = read_to_string("data/03.txt").unwrap();
+    let lines: Vec<_> = buf.lines().collect();
+
+    let part1: i32 = lines.
+        iter().
         map(|line| {
             let (a, b) = line.split_at(line.len() / 2);
             let a_chars: HashSet<char> = a.chars().collect();
@@ -20,8 +22,20 @@ pub fn run() -> (i32, i32) {
             common_chars.map(priority).sum::<i32>()
         }).
         sum();
+    
+    let part2 = lines.
+        chunks(3).map(|chunk| {
+            chunk.
+                iter().
+                map(|line| HashSet::from_iter(line.chars())).
+                reduce(|a, b| a.intersection(&b).cloned().collect::<HashSet<_>>()).
+                unwrap().
+                iter().
+                map(priority).sum::<i32>()
+        }).
+        sum();
 
-    (part1, 0)
+    (part1, part2)
 }
 
 #[test]
