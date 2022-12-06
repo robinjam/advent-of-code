@@ -8,31 +8,41 @@ fn priority(c: &char) -> i32 {
     }
 }
 
+fn intersect(a: HashSet<char>, b: HashSet<char>) -> HashSet<char> {
+    a.intersection(&b).cloned().collect()
+}
+
+fn common_chars(strings: &[&str]) -> HashSet<char> {
+    strings.
+        iter().
+        map(|line| line.chars()).
+        map(HashSet::from_iter).
+        reduce(intersect).
+        unwrap()
+}
+
+fn priority_of_common_chars(strings: &[&str]) -> i32 {
+    common_chars(strings).
+        iter().
+        map(priority).
+        sum()
+}
+
 pub fn run() -> (i32, i32) {
     let buf = read_to_string("data/03.txt").unwrap();
     let lines: Vec<_> = buf.lines().collect();
 
-    let part1: i32 = lines.
+    let part1 = lines.
         iter().
         map(|line| {
             let (a, b) = line.split_at(line.len() / 2);
-            let a_chars: HashSet<char> = a.chars().collect();
-            let b_chars: HashSet<char> = b.chars().collect();
-            let common_chars = a_chars.intersection(&b_chars);
-            common_chars.map(priority).sum::<i32>()
+            priority_of_common_chars(&[a, b])
         }).
         sum();
     
     let part2 = lines.
-        chunks(3).map(|chunk| {
-            chunk.
-                iter().
-                map(|line| HashSet::from_iter(line.chars())).
-                reduce(|a, b| a.intersection(&b).cloned().collect::<HashSet<_>>()).
-                unwrap().
-                iter().
-                map(priority).sum::<i32>()
-        }).
+        chunks(3).
+        map(priority_of_common_chars).
         sum();
 
     (part1, part2)
