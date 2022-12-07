@@ -1,10 +1,13 @@
 use std::{fs::read_to_string, ops::{RangeInclusive}};
 
-fn range_from_str(s: &str) -> RangeInclusive<i32> {
-    let mut parts = s.split("-").map(|part| part.parse::<i32>().unwrap());
-    let a = parts.next().unwrap();
-    let b = parts.next().unwrap();
+fn pair_from_iter<I, T>(mut iter: I) -> (T, T) where I: Iterator<Item = T> {
+    (iter.next().unwrap(), iter.next().unwrap())
+}
 
+fn range_from_str(s: &str) -> RangeInclusive<i32> {
+    let (a, b) = pair_from_iter(
+        s.split("-").map(|part| part.parse::<i32>().unwrap())
+    );
     a..=b
 }
 
@@ -19,23 +22,17 @@ fn overlaps(a: &RangeInclusive<i32>, b: &RangeInclusive<i32>) -> bool {
 pub fn run() -> (i32, i32) {
     let buf = read_to_string("data/04.txt").unwrap();
 
-    let foo = buf.
+    let ranges = buf.
         lines().
-        map(|line| {
-            let mut parts = line.split(",");
-            (
-                range_from_str(parts.next().unwrap()),
-                range_from_str(parts.next().unwrap())
-            )
-        });
+        map(|line| pair_from_iter(line.split(",").map(range_from_str)));
 
-    let part1 = foo.clone().
-        filter(|(a, b)| {
-            contains(&a, &b) || contains(&b, &a)
-        }).
+    let part1 = ranges.clone().
+        filter(|(a, b)| contains(&a, &b) || contains(&b, &a)).
         count() as i32;
-    
-    let part2 = foo.filter(|(a, b)| overlaps(a, b)).count() as i32;
+
+    let part2 = ranges.
+        filter(|(a, b)| overlaps(a, b))
+        .count() as i32;
 
     (part1, part2)
 }
