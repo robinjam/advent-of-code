@@ -1,12 +1,14 @@
 mod day01;
 mod day02;
 mod day03;
+mod day04;
 
 fn main() {
     let days: Vec<fn () -> (i32, i32)> = vec![
         day01::run,
         day02::run,
         day03::run,
+        day04::run,
     ];
     
     for (i, f) in days.iter().enumerate() {
