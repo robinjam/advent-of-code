@@ -30,11 +30,11 @@ fn score_2(line: &str) -> i32 {
     }
 }
 
-pub fn run() -> (i32, i32) {
+pub fn run() -> (String, String) {
     let buf = read_to_string("data/02.txt").unwrap();
 
-    (
-        buf.lines().map(score_1).sum(),
-        buf.lines().map(score_2).sum()
-    )
+    let part1: i32 = buf.lines().map(score_1).sum();
+    let part2: i32 = buf.lines().map(score_2).sum();
+
+    (part1.to_string(), part2.to_string())
 }

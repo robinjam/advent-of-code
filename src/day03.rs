@@ -28,11 +28,11 @@ fn priority_of_common_chars(strings: &[&str]) -> i32 {
         sum()
 }
 
-pub fn run() -> (i32, i32) {
+pub fn run() -> (String, String) {
     let buf = read_to_string("data/03.txt").unwrap();
     let lines: Vec<_> = buf.lines().collect();
 
-    let part1 = lines.
+    let part1: i32 = lines.
         iter().
         map(|line| {
             let (a, b) = line.split_at(line.len() / 2);
@@ -40,12 +40,12 @@ pub fn run() -> (i32, i32) {
         }).
         sum();
     
-    let part2 = lines.
+    let part2: i32 = lines.
         chunks(3).
         map(priority_of_common_chars).
         sum();
 
-    (part1, part2)
+    (part1.to_string(), part2.to_string())
 }
 
 #[test]

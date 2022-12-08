@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-pub fn run() -> (i32, i32) {
+pub fn run() -> (String, String) {
     let mut sums: Vec<i32> =
         read_to_string("data/01.txt").
         unwrap().
@@ -16,8 +16,8 @@ pub fn run() -> (i32, i32) {
 
     sums.sort_unstable_by(|a, b| b.cmp(a));
 
-    (
-        sums[0],
-        sums[0..3].iter().sum()
-    )
+    let part1: i32 = sums[0];
+    let part2: i32 = sums[0..3].iter().sum();
+
+    (part1.to_string(), part2.to_string())
 }

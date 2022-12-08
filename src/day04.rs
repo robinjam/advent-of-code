@@ -19,7 +19,7 @@ fn overlaps(a: &RangeInclusive<i32>, b: &RangeInclusive<i32>) -> bool {
     a.start() <= b.end() && a.end() >= b.start()
 }
 
-pub fn run() -> (i32, i32) {
+pub fn run() -> (String, String) {
     let buf = read_to_string("data/04.txt").unwrap();
 
     let ranges = buf.
@@ -34,5 +34,5 @@ pub fn run() -> (i32, i32) {
         filter(|(a, b)| overlaps(a, b))
         .count() as i32;
 
-    (part1, part2)
+    (part1.to_string(), part2.to_string())
 }
