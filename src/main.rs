@@ -3,6 +3,7 @@ mod day02;
 mod day03;
 mod day04;
 mod day05;
+mod day06;
 
 fn main() {
     let days: Vec<fn () -> (String, String)> = vec![
@@ -11,6 +12,7 @@ fn main() {
         day03::run,
         day04::run,
         day05::run,
+        day06::run,
     ];
     
     for (i, f) in days.iter().enumerate() {
