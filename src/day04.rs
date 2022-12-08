@@ -28,11 +28,11 @@ pub fn run() -> (String, String) {
 
     let part1 = ranges.clone().
         filter(|(a, b)| contains(&a, &b) || contains(&b, &a)).
-        count() as i32;
+        count();
 
     let part2 = ranges.
         filter(|(a, b)| overlaps(a, b))
-        .count() as i32;
+        .count();
 
     (part1.to_string(), part2.to_string())
 }

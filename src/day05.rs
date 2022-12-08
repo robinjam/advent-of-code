@@ -16,10 +16,10 @@ struct Instruction {
 }
 
 fn parse(buf: &str) -> (Stacks, Vec<Instruction>) {
-    let mut blocks = buf.split(" 1   2   3   4   5   6   7   8   9 \n\n");
+    let (stacks, instructions) = buf.split_once(" 1   2   3   4   5   6   7   8   9 \n\n").unwrap();
     (
-        parse_stacks(blocks.next().unwrap()),
-        parse_instructions(blocks.next().unwrap())
+        parse_stacks(stacks),
+        parse_instructions(instructions)
     )
 }
 
@@ -36,7 +36,7 @@ fn parse_stacks(stacks: &str) -> Stacks {
 }
 
 fn parse_instructions(instructions: &str) -> Vec<Instruction> {
-    Regex::new(r"move ([0-9]+) from ([0-9]+) to ([0-9]+)").
+    Regex::new(r"move ([0-9]+) from ([1-9]) to ([1-9])").
         unwrap().
         captures_iter(instructions).
         map(|matches| {
