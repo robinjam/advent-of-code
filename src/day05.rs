@@ -24,7 +24,7 @@ fn parse(buf: &str) -> (Stacks, Vec<Instruction>) {
 }
 
 fn parse_stacks(stacks: &str) -> Stacks {
-    let mut result: Stacks = Default::default();
+    let mut result = Stacks::default();
     for line in stacks.lines().rev() {
         for (column, value) in line.chars().skip(1).step_by(4).enumerate() {
             if value.is_alphabetic() {
@@ -51,19 +51,13 @@ fn parse_instructions(instructions: &str) -> Vec<Instruction> {
 
 fn apply_instructions(mode: Mode, mut stacks: Stacks, instructions: Vec<Instruction>) -> String {
     for instruction in instructions {
+        let src_stack = &mut stacks[instruction.src_index];
+        let mut removed_values = src_stack.split_off(src_stack.len() - instruction.count);
         match mode {
-            Mode::CrateMover9000 => {
-                for _ in 0..instruction.count {
-                    let value = stacks[instruction.src_index].pop().unwrap();
-                    stacks[instruction.dst_index].push(value);
-                }
-            },
-            Mode::CrateMover9001 => {
-                let mut removed_values = stacks[instruction.src_index].split_off(stacks[instruction.src_index].len() - instruction.count);
-                stacks[instruction.dst_index].append(&mut removed_values);
-            }
+            Mode::CrateMover9000 => removed_values.reverse(),
+            Mode::CrateMover9001 => ()
         }
-        
+        stacks[instruction.dst_index].append(&mut removed_values);
     }
     String::from_iter(stacks.map(|stack| stack.last().unwrap().clone()))
 }
