@@ -154,13 +154,13 @@ fn test_parse_terminal_session() {
                 Listing::File("k".into(), 7214296),         // 7214296 k
             ]),
         ],
-        parse_terminal_session(read_to_string("data/07_example.txt").unwrap().as_str())
+        parse_terminal_session(include_str!("../data/07_example.txt"))
     )
 }
 
 #[test]
 fn test_evaluate_commands() {
-    let commands = parse_terminal_session(read_to_string("data/07_example.txt").unwrap().as_str());
+    let commands = parse_terminal_session(include_str!("../data/07_example.txt"));
     assert_eq!(
         Node::Dir([
             ("a".into(), Node::Dir([
@@ -186,7 +186,7 @@ fn test_evaluate_commands() {
 
 #[test]
 fn test_total_size() {
-    let commands = parse_terminal_session(read_to_string("data/07_example.txt").unwrap().as_str());
+    let commands = parse_terminal_session(include_str!("../data/07_example.txt"));
     let root = evaluate_commands(&commands);
     assert_eq!(48381165, total_size(&root));
 }

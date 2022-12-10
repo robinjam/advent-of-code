@@ -1,3 +1,5 @@
+#![feature(generators, generator_trait, iter_from_generator)]
+
 mod day01;
 mod day02;
 mod day03;
@@ -6,6 +8,8 @@ mod day05;
 mod day06;
 mod day07;
 mod day08;
+mod day09;
+mod day10;
 
 fn main() {
     let days: Vec<fn () -> (String, String)> = vec![
@@ -17,6 +21,8 @@ fn main() {
         day06::run,
         day07::run,
         day08::run,
+        day09::run,
+        day10::run,
     ];
     
     for (i, f) in days.iter().enumerate() {
