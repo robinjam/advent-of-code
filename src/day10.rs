@@ -1,55 +1,38 @@
-use std::{fs::read_to_string, ops::Generator, iter::from_generator};
+use std::fs::read_to_string;
 
 use itertools::Itertools;
 
-fn create_generator() -> impl Generator<Yield = i32, Return = ()> {
-    || {
-        let mut x = 1;
-        yield x;
-
-        let lines: Vec<String> = read_to_string("data/10.txt").
-            unwrap().
-            lines().
-            map(|line| line.to_owned()).
-            collect();
-
-        for line in lines {
-            match &line[0..4] {
-                "noop" => {
-                    yield x;
-                },
-                "addx" => {
-                    yield x;
-                    x += line[5..].parse::<i32>().unwrap();
-                    yield x;
-                },
-                _ => panic!()
-            }
+pub fn run() -> (String, String) {
+    let mut x_values: Vec<i32> = vec![1];
+    for line in read_to_string("data/10.txt").unwrap().lines() {
+        let prev_value = *x_values.last().unwrap();
+        x_values.push(prev_value);
+        match &line[0..4] {
+            "noop" => (),
+            "addx" => x_values.push(prev_value + line[5..].parse::<i32>().unwrap()),
+            _ => panic!()
         }
     }
-}
 
-fn part1() -> i32 {
-    let values: Vec<i32> = from_generator(create_generator()).collect();
-    (20..=220).step_by(40).map(|i| i * values[i as usize - 1]).sum()
-}
+    let part1: i32 = x_values.
+        iter().
+        skip(19).
+        zip(20..).
+        step_by(40).
+        map(|(i, x)| i * x).
+        sum();
 
-fn part2() -> String {
-    from_generator(create_generator()).
-        enumerate().
-        map(|(idx, x)| {
-            if (x - 1..=x + 1).contains(&(idx as i32 % 40)) {
-                '#'
-            }
-            else {
-                '.'
-            }
+    let part2 = (0..240).
+        map(|i| i % 40).
+        zip(x_values.iter()).
+        map(|(col, x)| {
+            if (x - 1..=x + 1).contains(&col) { '#' }
+            else { '.' }
         }).
-        chunks(40).into_iter().
+        chunks(40).
+        into_iter().
         map(|chunk| chunk.into_iter().join("")).
-        join("\n")
-}
+        join("\n");
 
-pub fn run() -> (String, String) {
-    (part1().to_string(), "\n".to_owned() + &part2())
+    (part1.to_string(), "\n".to_owned() + &part2)
 }

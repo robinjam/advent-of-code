@@ -1,5 +1,3 @@
-#![feature(generators, generator_trait, iter_from_generator)]
-
 mod day01;
 mod day02;
 mod day03;
