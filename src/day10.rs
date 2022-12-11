@@ -26,8 +26,8 @@ pub fn run() -> (String, String) {
         map(|i| i % 40).
         zip(x_values.iter()).
         map(|(col, x)| {
-            if (x - 1..=x + 1).contains(&col) { '#' }
-            else { '.' }
+            if (x - 1..=x + 1).contains(&col) { '⬜' }
+            else { '⬛' }
         }).
         chunks(40).
         into_iter().
