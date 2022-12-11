@@ -5,13 +5,13 @@ use anyhow::{Result, Error, anyhow, Context};
 pub fn run() -> (String, String) {
     let monkeys = parse_monkeys(&read_to_string("data/11.txt").unwrap()).unwrap();
     
-    let lcm = monkeys.iter().map(|m| m.test_divisor).product();
-    let part1 = play_game(monkeys.clone(), 20, true, lcm);
-    let part2 = play_game(monkeys, 10000, false, lcm);
+    let common_multiple = monkeys.iter().map(|m| m.test_divisor).product();
+    let part1 = play_game(monkeys.clone(), 20, true, common_multiple);
+    let part2 = play_game(monkeys, 10000, false, common_multiple);
     (part1.to_string(), part2.to_string())
 }
 
-fn play_game(mut monkeys: Vec<Monkey>, rounds: usize, part1: bool, lcm: u64) -> usize {
+fn play_game(mut monkeys: Vec<Monkey>, rounds: usize, part1: bool, common_multiple: u64) -> usize {
     for _ in 0..rounds {
         for i in 0..monkeys.len() {
             let mut monkey = Monkey::default();
@@ -19,7 +19,7 @@ fn play_game(mut monkeys: Vec<Monkey>, rounds: usize, part1: bool, lcm: u64) -> 
             for item in monkey.items.drain(..) {
                 monkey.num_inspections += 1;
                 let new_value = monkey.operation.evaluate(item);
-                let new_score = if part1 { new_value / 3 } else { new_value % lcm };
+                let new_score = if part1 { new_value / 3 } else { new_value % common_multiple };
                 let next_target = if new_score % monkey.test_divisor == 0 {
                     monkey.target_if_true
                 } else {
