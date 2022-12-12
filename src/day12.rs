@@ -6,9 +6,27 @@ use pathfinding::prelude::dijkstra;
 pub fn run() -> (String, String) {
     let map = load_map(&read_to_string("data/12.txt").unwrap());
 
-    let part1 = steps_required(&map);
+    let part1 = steps_required(
+        &map,
+        |&pos| {
+            match map[pos] {
+                Node::Start => true,
+                _ => false,
+            }
+        }
+    );
 
-    (part1.to_string(), "".into())
+    let part2 = steps_required(
+        &map,
+        |&pos| {
+            match map[pos] {
+                Node::Height(0) => true,
+                _ => false,
+            }
+        }
+    );
+
+    (part1.to_string(), part2.to_string())
 }
 
 fn load_map(buf: &str) -> Array2D<Node> {
@@ -28,21 +46,18 @@ fn load_map(buf: &str) -> Array2D<Node> {
     )
 }
 
-fn steps_required(map: &Array2D<Node>) -> usize {
+fn steps_required<F>(map: &Array2D<Node>, goal: F) -> usize
+    where F: Fn(&(usize, usize)) -> bool
+{
     let (_, steps) = dijkstra(
-        &find_start(map),
+        &find_end(map),
         |&pos| {
             neighbours(&map, pos).
                 iter().
                 map(|&p| (p, 1)).
                 collect::<Vec<_>>()
         },
-        |&pos| {
-            match map[pos] {
-                Node::End => true,
-                _ => false,
-            }
-        }
+        goal
     ).unwrap();
 
     steps
@@ -65,11 +80,11 @@ impl Node {
     }
 }
 
-fn find_start(map: &Array2D<Node>) -> (usize, usize) {
+fn find_end(map: &Array2D<Node>) -> (usize, usize) {
     for x in 0..map.column_len() {
         for y in 0..map.row_len() {
             match map[(x, y)] {
-                Node::Start => return (x, y),
+                Node::End => return (x, y),
                 _ => ()
             }
         }
@@ -89,7 +104,7 @@ fn neighbours(map: &Array2D<Node>, pos: (usize, usize)) -> Vec<(usize, usize)> {
     neighbours.
         iter().
         filter(|&&p|
-            map[p].height() - current_height <= 1
+            current_height - map[p].height() <= 1
         )
         .cloned()
         .collect()
