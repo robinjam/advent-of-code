@@ -1,5 +1,7 @@
 use std::{fs::read_to_string, collections::HashSet};
 
+use anyhow::Result;
+
 type Vec2 = (i32, i32);
 
 fn next_tail_position(mut tail: Vec2, head: Vec2) -> Vec2 {
@@ -44,11 +46,11 @@ fn make_moves(rope: &mut [Vec2], buf: &str) -> usize {
     tail_positions.len()
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let buf = read_to_string("data/09.txt").unwrap();
 
     let part1 = make_moves(&mut [Vec2::default(); 2], &buf);
     let part2 = make_moves(&mut [Vec2::default(); 10], &buf);
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }

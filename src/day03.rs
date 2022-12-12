@@ -1,5 +1,7 @@
 use std::{fs::read_to_string, collections::HashSet};
 
+use anyhow::Result;
+
 fn priority(c: &char) -> i32 {
     match c {
         'a'..='z' => *c as i32 - 96,
@@ -28,7 +30,7 @@ fn priority_of_common_chars(strings: &[&str]) -> i32 {
         sum()
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let buf = read_to_string("data/03.txt").unwrap();
     let lines: Vec<_> = buf.lines().collect();
 
@@ -45,7 +47,7 @@ pub fn run() -> (String, String) {
         map(priority_of_common_chars).
         sum();
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 #[test]

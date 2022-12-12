@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 
+use anyhow::Result;
 use array2d::Array2D;
 use itertools::Itertools;
 
@@ -48,7 +49,7 @@ fn scenic_score(trees: &Array2D<u32>, (x, y): (usize, usize)) -> i32 {
     up * down * left * right
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let rows: Vec<Vec<u32>> = read_to_string("data/08.txt").
         unwrap().
         lines().
@@ -74,5 +75,5 @@ pub fn run() -> (String, String) {
         max().
         unwrap();
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }

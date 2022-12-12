@@ -1,8 +1,9 @@
 use std::fs::read_to_string;
 
+use anyhow::Result;
 use itertools::Itertools;
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let mut x_values: Vec<i32> = vec![1];
     for line in read_to_string("data/10.txt").unwrap().lines() {
         let prev_value = *x_values.last().unwrap();
@@ -34,5 +35,5 @@ pub fn run() -> (String, String) {
         map(|chunk| chunk.into_iter().join("")).
         join("\n");
 
-    (part1.to_string(), "\n".to_owned() + &part2)
+    Ok((part1.to_string(), "\n".to_owned() + &part2))
 }

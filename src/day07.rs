@@ -1,5 +1,7 @@
 use std::{fs::read_to_string, collections::HashMap};
 
+use anyhow::Result;
+
 #[derive(Debug, PartialEq)]
 enum Node {
     Dir(HashMap<String, Node>),
@@ -108,7 +110,7 @@ fn all_dir_sizes(node: &Node) -> Vec<usize> {
     }
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let root = evaluate_commands(&parse_terminal_session(&read_to_string("data/07.txt").unwrap()));
 
     let part1: usize = all_dir_sizes(&root).iter().filter(|count| **count <= 100000).sum();
@@ -119,7 +121,7 @@ pub fn run() -> (String, String) {
     all_sizes.sort_unstable();
     let part2 = all_sizes.iter().find(|size| **size >= required_space).unwrap();
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 #[test]

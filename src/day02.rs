@@ -1,5 +1,7 @@
 use std::fs::read_to_string;
 
+use anyhow::Result;
+
 fn score_1(line: &str) -> i32 {
     match line {
         "B X" => 1,
@@ -30,11 +32,11 @@ fn score_2(line: &str) -> i32 {
     }
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let buf = read_to_string("data/02.txt").unwrap();
 
     let part1: i32 = buf.lines().map(score_1).sum();
     let part2: i32 = buf.lines().map(score_2).sum();
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }

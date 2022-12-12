@@ -1,5 +1,7 @@
 use std::{fs::read_to_string, ops::{RangeInclusive}};
 
+use anyhow::Result;
+
 fn pair_from_iter<I, T>(mut iter: I) -> (T, T) where I: Iterator<Item = T> {
     (iter.next().unwrap(), iter.next().unwrap())
 }
@@ -19,7 +21,7 @@ fn overlaps(a: &RangeInclusive<i32>, b: &RangeInclusive<i32>) -> bool {
     a.start() <= b.end() && a.end() >= b.start()
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let buf = read_to_string("data/04.txt").unwrap();
 
     let ranges = buf.
@@ -34,5 +36,5 @@ pub fn run() -> (String, String) {
         filter(|(a, b)| overlaps(a, b))
         .count();
 
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }

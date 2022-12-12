@@ -2,13 +2,13 @@ use std::{str::FromStr, fs::read_to_string, mem::swap};
 
 use anyhow::{Result, Error, anyhow, Context};
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let monkeys = parse_monkeys(&read_to_string("data/11.txt").unwrap()).unwrap();
     
     let common_multiple = monkeys.iter().map(|m| m.test_divisor).product();
     let part1 = play_game(monkeys.clone(), 20, true, common_multiple);
     let part2 = play_game(monkeys, 10000, false, common_multiple);
-    (part1.to_string(), part2.to_string())
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 fn play_game(mut monkeys: Vec<Monkey>, rounds: usize, part1: bool, common_multiple: u64) -> usize {

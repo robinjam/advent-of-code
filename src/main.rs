@@ -1,3 +1,5 @@
+use anyhow::Result;
+
 mod day01;
 mod day02;
 mod day03;
@@ -12,7 +14,7 @@ mod day11;
 mod day12;
 
 fn main() {
-    let days: Vec<fn () -> (String, String)> = vec![
+    let days: Vec<fn () -> Result<(String, String)>> = vec![
         day01::run,
         day02::run,
         day03::run,
@@ -28,7 +30,7 @@ fn main() {
     ];
     
     for (i, f) in days.iter().enumerate() {
-        let (part1, part2) = f();
+        let (part1, part2) = f().unwrap();
         println!("Day {}", i + 1);
         println!("  Part 1: {}", part1);
         println!("  Part 2: {}", part2);

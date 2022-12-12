@@ -1,4 +1,5 @@
 use std::fs::read_to_string;
+use anyhow::Result;
 use regex::Regex;
 
 enum Mode {
@@ -62,11 +63,11 @@ fn apply_instructions(mode: Mode, mut stacks: Stacks, instructions: Vec<Instruct
     String::from_iter(stacks.map(|stack| stack.last().unwrap().clone()))
 }
 
-pub fn run() -> (String, String) {
+pub fn run() -> Result<(String, String)> {
     let (stacks, instructions) = parse(&read_to_string("data/05.txt").unwrap());
     let part1 = apply_instructions(Mode::CrateMover9000, stacks.clone(), instructions.clone());
     let part2 = apply_instructions(Mode::CrateMover9001, stacks, instructions);
-    (part1, part2)
+    Ok((part1, part2))
 }
 
 #[test]

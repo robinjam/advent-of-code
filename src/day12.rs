@@ -4,13 +4,16 @@ use anyhow::{Result, anyhow, Context, Error};
 use array2d::Array2D;
 use pathfinding::prelude::dijkstra;
 
-pub fn run() -> (String, String) {
-    let InitialState{ heights, start, end } = read_to_string("data/12.txt").unwrap().parse().unwrap();
+pub fn run() -> Result<(String, String)> {
+    let InitialState{ heights, start, end } = read_to_string("data/12.txt")?.parse()?;
 
-    let part1 = steps_required(&heights, end, |&pos| { pos == start }).unwrap();
-    let part2 = steps_required(&heights, end, |&pos| { heights[pos] == 0 }).unwrap();
+    let part1 = steps_required(&heights, end, |&pos| { pos == start }).
+        context("part 1: can't find path to goal!")?;
 
-    (part1.to_string(), part2.to_string())
+    let part2 = steps_required(&heights, end, |&pos| { heights[pos] == 0 }).
+        context("part 2: can't find path to goal!")?;
+
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 type Heights = Array2D<i32>;
