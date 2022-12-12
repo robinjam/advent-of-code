@@ -1,110 +1,85 @@
-use std::fs::read_to_string;
+use std::{fs::read_to_string, str::FromStr};
 
-use anyhow::{Error, Result, anyhow};
+use anyhow::{Result, anyhow, Context, Error};
 use array2d::Array2D;
 use pathfinding::prelude::dijkstra;
 
 pub fn run() -> (String, String) {
-    let map = load_map(&read_to_string("data/12.txt").unwrap()).unwrap();
+    let InitialState{ heights, start, end } = read_to_string("data/12.txt").unwrap().parse().unwrap();
 
-    let part1 = steps_required(&map, |&pos| {
-        match map[pos] {
-            Square::Start => true,
-            _ => false,
-        }
-    }).unwrap();
-
-    let part2 = steps_required(&map, |&pos| {
-        match map[pos] {
-            Square::Height(0) => true,
-            _ => false,
-        }
-    }).unwrap();
+    let part1 = steps_required(&heights, end, |&pos| { pos == start }).unwrap();
+    let part2 = steps_required(&heights, end, |&pos| { heights[pos] == 0 }).unwrap();
 
     (part1.to_string(), part2.to_string())
 }
 
+type Heights = Array2D<i32>;
 type Pos = (usize, usize);
 
-fn load_map(buf: &str) -> Result<Array2D<Square>> {
-    let rows: Vec<Vec<Square>> = buf.lines().map(|line|
-        line.chars().map(|char| char.try_into() ).collect()
-    ).collect::<Result<_>>()?;
-
-    Ok(Array2D::from_rows(&rows))
+struct InitialState {
+    heights: Heights,
+    start: Pos,
+    end: Pos,
 }
 
-fn steps_required<F>(map: &Array2D<Square>, goal: F) -> Option<usize>
+impl FromStr for InitialState {
+    type Err = Error;
+
+    fn from_str(buf: &str) -> Result<Self> {
+        let mut start: Option<Pos> = None;
+        let mut end: Option<Pos> = None;
+
+        let rows: Vec<Vec<i32>> = buf.lines().enumerate().map(|(row_idx, line)|
+            line.chars().enumerate().map(|(col_idx, char)| {
+                match char {
+                    'S' => {
+                        match start {
+                            Some(..) => Err(anyhow!("multiple start squares found in input")),
+                            None => {
+                                start = Some((row_idx, col_idx));
+                                Ok(0)
+                            }
+                        }
+                    },
+                    'E' => {
+                        match end {
+                            Some(..) => Err(anyhow!("multiple end squares found in input")),
+                            None => {
+                                end = Some((row_idx, col_idx));
+                                Ok(25)
+                            }
+                        }
+                    },
+                    'a'..='z' => Ok(char as i32 - 'a' as i32),
+                    _ => Err(anyhow!("invalid square: {}", char))
+                }
+            }).collect()
+        ).collect::<Result<_>>()?;
+
+        let heights = Array2D::from_rows(&rows);
+        let start = start.context("can't find start square in input")?;
+        let end = end.context("can't find end square in input")?;
+
+        Ok(InitialState{ heights, start, end })
+    }
+}
+
+fn steps_required<F>(heights: &Heights, start: Pos, is_goal: F) -> Option<usize>
     where F: Fn(&Pos) -> bool
 {
     let (_, steps) = dijkstra(
-        &find_end(map)?,
+        &start,
         |&pos| {
-            neighbours(&map, pos).
-                iter().
-                map(|&p| (p, 1)).
-                collect::<Vec<_>>()
+            let mut neighbours = vec![];
+            if pos.0 > 0                         { neighbours.push(((pos.0 - 1, pos.1    ), 1)); }
+            if pos.1 > 0                         { neighbours.push(((pos.0    , pos.1 - 1), 1)); }
+            if pos.0 < heights.num_rows() - 1    { neighbours.push(((pos.0 + 1, pos.1    ), 1)); }
+            if pos.1 < heights.num_columns() - 1 { neighbours.push(((pos.0    , pos.1 + 1), 1)); }
+            neighbours.retain(|next| heights[pos] - heights[next.0] <= 1);
+            neighbours
         },
-        goal
+        is_goal
     )?;
 
     Some(steps)
-}
-
-#[derive(Clone, Copy)]
-enum Square {
-    Start,
-    End,
-    Height(i32),
-}
-
-impl Square {
-    fn height(&self) -> i32 {
-        match self {
-            Square::Start => 0,
-            Square::End => 25,
-            Square::Height(height) => *height,
-        }
-    }
-}
-
-impl TryFrom<char> for Square {
-    type Error = Error;
-
-    fn try_from(value: char) -> Result<Self> {
-        match value {
-            'S' => Ok(Square::Start),
-            'E' => Ok(Square::End),
-            'a'..='z' => Ok(Square::Height(value as i32 - 'a' as i32)),
-            _ => Err(anyhow!("Invalid square: {}", value))
-        }
-    }
-}
-
-fn find_end(map: &Array2D<Square>) -> Option<Pos> {
-    for col in 0..map.num_columns() {
-        for row in 0..map.num_rows() {
-            match map[(row, col)] {
-                Square::End => return Some((row, col)),
-                _ => ()
-            }
-        }
-    }
-    None
-}
-
-fn neighbours(map: &Array2D<Square>, pos: Pos) -> Vec<Pos> {
-    let height = map[pos].height();
-
-    let mut neighbours = vec![];
-    if pos.0 > 0 { neighbours.push((pos.0 - 1, pos.1)); }
-    if pos.1 > 0 { neighbours.push((pos.0, pos.1 - 1)); }
-    if pos.0 < map.num_rows() - 1 { neighbours.push((pos.0 + 1, pos.1)); }
-    if pos.1 < map.num_columns() - 1 { neighbours.push((pos.0, pos.1 + 1)); }
-
-    neighbours.
-        iter().
-        filter(|&&p| height - map[p].height() <= 1).
-        cloned().
-        collect()
 }
