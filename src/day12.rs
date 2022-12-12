@@ -1,56 +1,44 @@
 use std::fs::read_to_string;
 
+use anyhow::{Error, Result, anyhow};
 use array2d::Array2D;
 use pathfinding::prelude::dijkstra;
 
 pub fn run() -> (String, String) {
-    let map = load_map(&read_to_string("data/12.txt").unwrap());
+    let map = load_map(&read_to_string("data/12.txt").unwrap()).unwrap();
 
-    let part1 = steps_required(
-        &map,
-        |&pos| {
-            match map[pos] {
-                Node::Start => true,
-                _ => false,
-            }
+    let part1 = steps_required(&map, |&pos| {
+        match map[pos] {
+            Square::Start => true,
+            _ => false,
         }
-    );
+    }).unwrap();
 
-    let part2 = steps_required(
-        &map,
-        |&pos| {
-            match map[pos] {
-                Node::Height(0) => true,
-                _ => false,
-            }
+    let part2 = steps_required(&map, |&pos| {
+        match map[pos] {
+            Square::Height(0) => true,
+            _ => false,
         }
-    );
+    }).unwrap();
 
     (part1.to_string(), part2.to_string())
 }
 
-fn load_map(buf: &str) -> Array2D<Node> {
-    Array2D::from_rows(
-        &buf.
-            lines().
-            map(|line|
-                line.chars().map(|char|
-                    match char {
-                        'S' => Node::Start,
-                        'E' => Node::End,
-                        'a'..='z' => Node::Height(char as i32 - 'a' as i32),
-                        _ => panic!()
-                    }
-                ).collect::<Vec<_>>()
-            ).collect::<Vec<_>>()
-    )
+type Pos = (usize, usize);
+
+fn load_map(buf: &str) -> Result<Array2D<Square>> {
+    let rows: Vec<Vec<Square>> = buf.lines().map(|line|
+        line.chars().map(|char| char.try_into() ).collect()
+    ).collect::<Result<_>>()?;
+
+    Ok(Array2D::from_rows(&rows))
 }
 
-fn steps_required<F>(map: &Array2D<Node>, goal: F) -> usize
-    where F: Fn(&(usize, usize)) -> bool
+fn steps_required<F>(map: &Array2D<Square>, goal: F) -> Option<usize>
+    where F: Fn(&Pos) -> bool
 {
     let (_, steps) = dijkstra(
-        &find_end(map),
+        &find_end(map)?,
         |&pos| {
             neighbours(&map, pos).
                 iter().
@@ -58,42 +46,55 @@ fn steps_required<F>(map: &Array2D<Node>, goal: F) -> usize
                 collect::<Vec<_>>()
         },
         goal
-    ).unwrap();
+    )?;
 
-    steps
+    Some(steps)
 }
 
 #[derive(Clone, Copy)]
-enum Node {
+enum Square {
     Start,
     End,
     Height(i32),
 }
 
-impl Node {
+impl Square {
     fn height(&self) -> i32 {
         match self {
-            Node::Start => 0,
-            Node::End => 25,
-            Node::Height(height) => *height,
+            Square::Start => 0,
+            Square::End => 25,
+            Square::Height(height) => *height,
         }
     }
 }
 
-fn find_end(map: &Array2D<Node>) -> (usize, usize) {
-    for x in 0..map.column_len() {
-        for y in 0..map.row_len() {
-            match map[(x, y)] {
-                Node::End => return (x, y),
+impl TryFrom<char> for Square {
+    type Error = Error;
+
+    fn try_from(value: char) -> Result<Self> {
+        match value {
+            'S' => Ok(Square::Start),
+            'E' => Ok(Square::End),
+            'a'..='z' => Ok(Square::Height(value as i32 - 'a' as i32)),
+            _ => Err(anyhow!("Invalid square: {}", value))
+        }
+    }
+}
+
+fn find_end(map: &Array2D<Square>) -> Option<Pos> {
+    for col in 0..map.num_columns() {
+        for row in 0..map.num_rows() {
+            match map[(row, col)] {
+                Square::End => return Some((row, col)),
                 _ => ()
             }
         }
     }
-    unreachable!();
+    None
 }
 
-fn neighbours(map: &Array2D<Node>, pos: (usize, usize)) -> Vec<(usize, usize)> {
-    let current_height = map[pos].height();
+fn neighbours(map: &Array2D<Square>, pos: Pos) -> Vec<Pos> {
+    let height = map[pos].height();
 
     let mut neighbours = vec![];
     if pos.0 > 0 { neighbours.push((pos.0 - 1, pos.1)); }
@@ -103,9 +104,7 @@ fn neighbours(map: &Array2D<Node>, pos: (usize, usize)) -> Vec<(usize, usize)> {
 
     neighbours.
         iter().
-        filter(|&&p|
-            current_height - map[p].height() <= 1
-        )
-        .cloned()
-        .collect()
+        filter(|&&p| height - map[p].height() <= 1).
+        cloned().
+        collect()
 }
