@@ -4,7 +4,16 @@ use anyhow::{Result, Context};
 use serde::Deserialize;
 
 pub fn run() -> Result<(String, String)> {
-    let packet_pairs: Vec<(Packet, Packet)> = read_to_string("data/13.txt")?
+    let buf = read_to_string("data/13.txt")?;
+
+    Ok((
+        part1(&buf)?.to_string(),
+        part2(&buf)?.to_string()
+    ))
+}
+
+fn part1(buf: &str) -> Result<usize> {
+    let packet_pairs: Vec<(Packet, Packet)> = buf
         .split("\n\n")
         .map(|chunk| Ok((
             serde_json::from_str(chunk.lines().nth(0).context("chunk has fewer than 2 lines")?)?,
@@ -12,14 +21,32 @@ pub fn run() -> Result<(String, String)> {
         )))
         .collect::<Result<_>>()?;
     
-    let part1: usize = packet_pairs
+    Ok(packet_pairs
         .iter()
         .enumerate()
         .filter(|(_, (a, b))| a <= b)
         .map(|(i, _)| i + 1)
-        .sum();
+        .sum()
+    )
+}
 
-    Ok((part1.to_string(), "".to_owned()))
+fn part2(buf: &str) -> Result<usize> {
+    let divider_a = Packet::List(vec![Packet::List(vec![Packet::Integer(2)])]);
+    let divider_b = Packet::List(vec![Packet::List(vec![Packet::Integer(6)])]);
+
+    let mut all_packets: Vec<Packet> = buf
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| Ok(serde_json::from_str(line)?))
+        .collect::<Result<_>>()?;
+
+    all_packets.push(divider_a.clone());
+    all_packets.push(divider_b.clone());
+    all_packets.sort();
+
+    let divider_a_position = all_packets.iter().position(|p| *p == divider_a).unwrap();
+    let divider_b_position = all_packets.iter().position(|p| *p == divider_b).unwrap();
+    Ok((divider_a_position + 1) * (divider_b_position + 1))
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
