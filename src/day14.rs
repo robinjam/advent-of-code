@@ -1,18 +1,39 @@
-use std::{str::FromStr, collections::HashMap};
+use std::{str::FromStr, collections::HashSet, ops::Add, fs::read_to_string};
 
 use anyhow::{Result, Error, Context};
 
 pub fn run() -> Result<(String, String)> {
-    let cave: Cave = "498,4 -> 498,6 -> 496,6\n503,4 -> 502,4 -> 502,9 -> 494,9".parse()?;
+    let mut cave: Cave = read_to_string("data/14.txt")?.parse()?;
+    let height = cave.height().context("cave is empty")?;
 
-    for row in 0..=9 {
-        for col in 494..=503 {
-            print!("{}", if *cave.rocks.get(&Pos(row, col)).unwrap_or(&false) { "#" } else { "." });
+    let mut count = 0;
+    'outer: loop {
+        let mut pos = Pos(0, 500);
+        loop {
+            let down = pos + Pos(1, 0);
+            let down_left = pos + Pos(1, -1);
+            let down_right = pos + Pos(1, 1);
+            if pos.0 >= height {
+                break 'outer;
+            }
+            else if !cave.blocked.contains(&down) {
+                pos = down;
+            }
+            else if !cave.blocked.contains(&down_left) {
+                pos = down_left;
+            }
+            else if !cave.blocked.contains(&down_right) {
+                pos = down_right;
+            }
+            else {
+                break;
+            }
         }
-        println!()
+        cave.blocked.insert(pos);
+        count += 1;
     }
 
-    Ok(("TODO".into(), "TODO".into()))
+    Ok((count.to_string(), "TODO".into()))
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -27,15 +48,29 @@ impl FromStr for Pos {
     }
 }
 
+impl Add for Pos {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0, self.1 + rhs.1)
+    }
+}
+
 struct Cave {
-    rocks: HashMap<Pos, bool>,
+    blocked: HashSet<Pos>,
+}
+
+impl Cave {
+    fn height(&self) -> Option<i32> {
+        self.blocked.iter().map(|pos| pos.0).max()
+    }
 }
 
 impl FromStr for Cave {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut rocks: HashMap<Pos, bool> = HashMap::new();
+        let mut blocked: HashSet<Pos> = HashSet::new();
 
         for line in s.lines() {
             let positions: Vec<Pos> = line
@@ -51,13 +86,13 @@ impl FromStr for Cave {
                     let max_y = a.1.max(b.1);
                     for col in min_x..=max_x {
                         for row in min_y..=max_y {
-                            rocks.insert(Pos(row, col), true);
+                            blocked.insert(Pos(row, col));
                         }
                     }
                 }
             }
         }
 
-        Ok(Cave{ rocks })
+        Ok(Cave{ blocked })
     }
 }
