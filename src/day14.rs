@@ -3,37 +3,12 @@ use std::{str::FromStr, collections::HashSet, ops::Add, fs::read_to_string};
 use anyhow::{Result, Error, Context};
 
 pub fn run() -> Result<(String, String)> {
-    let mut cave: Cave = read_to_string("data/14.txt")?.parse()?;
-    let height = cave.height().context("cave is empty")?;
+    let cave: Cave = read_to_string("data/14.txt")?.parse()?;
+    
+    let part1 = cave.clone().num_moves(false)?;
+    let part2 = cave.num_moves(true)?;
 
-    let mut count = 0;
-    'outer: loop {
-        let mut pos = Pos(0, 500);
-        loop {
-            let down = pos + Pos(1, 0);
-            let down_left = pos + Pos(1, -1);
-            let down_right = pos + Pos(1, 1);
-            if pos.0 >= height {
-                break 'outer;
-            }
-            else if !cave.blocked.contains(&down) {
-                pos = down;
-            }
-            else if !cave.blocked.contains(&down_left) {
-                pos = down_left;
-            }
-            else if !cave.blocked.contains(&down_right) {
-                pos = down_right;
-            }
-            else {
-                break;
-            }
-        }
-        cave.blocked.insert(pos);
-        count += 1;
-    }
-
-    Ok((count.to_string(), "TODO".into()))
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -56,6 +31,7 @@ impl Add for Pos {
     }
 }
 
+#[derive(Clone)]
 struct Cave {
     blocked: HashSet<Pos>,
 }
@@ -63,6 +39,46 @@ struct Cave {
 impl Cave {
     fn height(&self) -> Option<i32> {
         self.blocked.iter().map(|pos| pos.0).max()
+    }
+
+    fn num_moves(mut self, has_floor: bool) -> Result<i32> {
+        let height = self.height().context("cave is empty")?;
+
+        let mut count = 0;
+        'outer: loop {
+            let mut pos = Pos(0, 500);
+            loop {
+                let down = pos + Pos(1, 0);
+                let down_left = pos + Pos(1, -1);
+                let down_right = pos + Pos(1, 1);
+                if has_floor && pos.0 == height + 1 {
+                    break;
+                }
+                else if !has_floor && pos.0 >= height {
+                    break 'outer;
+                }
+                else if !self.blocked.contains(&down) {
+                    pos = down;
+                }
+                else if !self.blocked.contains(&down_left) {
+                    pos = down_left;
+                }
+                else if !self.blocked.contains(&down_right) {
+                    pos = down_right;
+                }
+                else if pos == Pos(0, 500) {
+                    count += 1;
+                    break 'outer;
+                }
+                else {
+                    break;
+                }
+            }
+            self.blocked.insert(pos);
+            count += 1;
+        }
+
+        Ok(count)
     }
 }
 
