@@ -6,8 +6,9 @@ pub fn run() -> Result<(String, String)> {
     let scan: Scan = read_to_string("data/18.txt")?.parse()?;
 
     let part1 = scan.surface_area();
+    let part2 = scan.with_holes_filled().surface_area();
 
-    Ok((part1.to_string(), "TODO".into()))
+    Ok((part1.to_string(), part2.to_string()))
 }
 
 struct Scan {
@@ -25,6 +26,44 @@ impl Scan {
                     .count()
             })
             .sum()
+    }
+
+    fn with_holes_filled(&self) -> Self {
+        // Perform flood fill of (padded) bounding box to discover air cubes, then invert
+        let max_x = *self.cubes.iter().map(|Pos(x, _, _)| x).max().unwrap_or(&0) + 1;
+        let max_y = *self.cubes.iter().map(|Pos(_, y, _)| y).max().unwrap_or(&0) + 1;
+        let max_z = *self.cubes.iter().map(|Pos(_, _, z)| z).max().unwrap_or(&0) + 1;
+        let mut queue: Vec<Pos> = vec![Pos(0, 0, 0)];
+        let mut air_cubes: HashSet<Pos> = HashSet::new();
+        while let Some(pos) = queue.pop() {
+            if !self.cubes.contains(&pos) && !air_cubes.contains(&pos) {
+                for neighbour in pos.neighbours() {
+                    if neighbour.0 >= 0
+                        && neighbour.0 <= max_x
+                        && neighbour.1 >= 0
+                        && neighbour.1 <= max_y
+                        && neighbour.2 >= 0
+                        && neighbour.2 <= max_z
+                    {
+                        queue.push(neighbour);
+                    }
+                }
+                air_cubes.insert(pos);
+            }
+        }
+
+        let mut cubes: HashSet<Pos> = HashSet::new();
+        for x in 0..=max_x {
+            for y in 0..=max_y {
+                for z in 0..=max_z {
+                    let pos = Pos(x, y, z);
+                    if !air_cubes.contains(&pos) {
+                        cubes.insert(pos);
+                    }
+                }
+            }
+        }
+        Self { cubes }
     }
 }
 
