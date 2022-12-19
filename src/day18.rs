@@ -33,16 +33,16 @@ impl Scan {
         let max_x = *self.cubes.iter().map(|Pos(x, _, _)| x).max().unwrap_or(&0) + 1;
         let max_y = *self.cubes.iter().map(|Pos(_, y, _)| y).max().unwrap_or(&0) + 1;
         let max_z = *self.cubes.iter().map(|Pos(_, _, z)| z).max().unwrap_or(&0) + 1;
-        let mut queue: Vec<Pos> = vec![Pos(0, 0, 0)];
+        let mut queue: Vec<Pos> = vec![Pos(-1, -1, -1)];
         let mut air_cubes: HashSet<Pos> = HashSet::new();
         while let Some(pos) = queue.pop() {
             if !self.cubes.contains(&pos) && !air_cubes.contains(&pos) {
                 for neighbour in pos.neighbours() {
-                    if neighbour.0 >= 0
+                    if neighbour.0 >= -1
                         && neighbour.0 <= max_x
-                        && neighbour.1 >= 0
+                        && neighbour.1 >= -1
                         && neighbour.1 <= max_y
-                        && neighbour.2 >= 0
+                        && neighbour.2 >= -1
                         && neighbour.2 <= max_z
                     {
                         queue.push(neighbour);
