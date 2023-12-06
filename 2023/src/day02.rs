@@ -95,8 +95,9 @@ impl FromStr for Round {
 
 #[test]
 fn test() {
-    assert_eq!(part1(include_str!("../examples/02.txt")), "8");
-    assert_eq!(part2(include_str!("../examples/02.txt")), "2286");
+    let input = include_str!("../examples/02.txt");
+    assert_eq!(part1(input), "8");
+    assert_eq!(part2(input), "2286");
 }
 
 #[test]
