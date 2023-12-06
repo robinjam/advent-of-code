@@ -36,7 +36,7 @@ where
             let mut digits = digits_from_line(line);
             Some(10 * digits.clone().next()? + digits.next_back()?)
         })
-        .fold(0, |a, b| a + b)
+        .sum::<u32>()
         .to_string()
 }
 
