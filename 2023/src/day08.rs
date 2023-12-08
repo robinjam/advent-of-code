@@ -14,18 +14,14 @@ fn part1(input: &str) -> String {
 
 fn part2(input: &str) -> String {
     let network = Network::from(input);
-    network
-        .nodes
-        .keys()
-        .filter(|node| node.ends_with("A"))
-        .map(|start| network.navigate(&start, |node: &str| node.ends_with("Z")))
-        .reduce(lcm)
-        .unwrap()
-        .to_string()
+    let start_nodes = network.nodes.keys().filter(|node| node.ends_with("A"));
+    let cycle_lengths =
+        start_nodes.map(|start| network.navigate(start, |node| node.ends_with("Z")));
+    cycle_lengths.fold(1, lcm).to_string()
 }
 
 struct Network<'input> {
-    instructions: Vec<Instruction>,
+    instructions: &'input str,
     nodes: HashMap<&'input str, (&'input str, &'input str)>,
 }
 
@@ -35,14 +31,15 @@ impl Network<'_> {
         F: Fn(&str) -> bool,
     {
         let mut current_node = start_node;
-        for (i, instruction) in self.instructions.iter().cycle().enumerate() {
+        for (i, instruction) in self.instructions.chars().cycle().enumerate() {
             if is_end_node(current_node) {
                 return i;
             }
             let (lhs, rhs) = self.nodes[&current_node];
             match instruction {
-                Instruction::Left => current_node = lhs,
-                Instruction::Right => current_node = rhs,
+                'L' => current_node = lhs,
+                'R' => current_node = rhs,
+                _ => panic!(),
             }
         }
 
@@ -53,12 +50,7 @@ impl Network<'_> {
 impl<'input> From<&'input str> for Network<'input> {
     fn from(s: &'input str) -> Network<'input> {
         let mut lines = s.lines();
-        let instructions = lines
-            .next()
-            .unwrap()
-            .chars()
-            .map(Instruction::from)
-            .collect();
+        let instructions = lines.next().unwrap();
         let nodes = lines
             .skip(1)
             .map(|line| {
@@ -71,21 +63,6 @@ impl<'input> From<&'input str> for Network<'input> {
         Network {
             instructions,
             nodes,
-        }
-    }
-}
-
-enum Instruction {
-    Left,
-    Right,
-}
-
-impl From<char> for Instruction {
-    fn from(c: char) -> Self {
-        match c {
-            'L' => Instruction::Left,
-            'R' => Instruction::Right,
-            _ => panic!(),
         }
     }
 }
