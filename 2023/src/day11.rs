@@ -26,15 +26,17 @@ fn solve(input: &str, expansion_factor: usize) -> String {
 #[derive(Default)]
 struct Universe {
     galaxies: Vec<Galaxy>,
+    empty_row_indices: Vec<usize>,
+    empty_column_indices: Vec<usize>,
 }
 
 impl Universe {
     fn distance_with_expansion(&self, a: &Galaxy, b: &Galaxy, expansion_factor: usize) -> usize {
         let empty_columns = (usize::min(a.x, b.x)..=usize::max(a.x, b.x))
-            .filter(|x| !self.galaxies.iter().any(|g| g.x == *x))
+            .filter(|x| self.empty_column_indices.contains(x))
             .count();
         let empty_rows = (usize::min(a.y, b.y)..=usize::max(a.y, b.y))
-            .filter(|y| !self.galaxies.iter().any(|g| g.y == *y))
+            .filter(|y| self.empty_row_indices.contains(y))
             .count();
         Galaxy::distance(&a, &b) + (expansion_factor - 1) * (empty_columns + empty_rows)
     }
@@ -42,15 +44,29 @@ impl Universe {
 
 impl From<&str> for Universe {
     fn from(value: &str) -> Self {
+        let lines = value.trim_end().lines();
         let mut galaxies = vec![];
-        for (y, line) in value.trim_end().lines().enumerate() {
+        for (y, line) in lines.clone().enumerate() {
             for (x, c) in line.chars().enumerate() {
                 if c == '#' {
                     galaxies.push(Galaxy { x, y });
                 }
             }
         }
-        Universe { galaxies }
+        let empty_row_indices = lines
+            .clone()
+            .enumerate()
+            .filter_map(|(i, line)| if line.contains('#') { None } else { Some(i) })
+            .collect();
+        let width = lines.clone().next().unwrap().len();
+        let empty_column_indices = (0..width)
+            .filter(|x| !lines.clone().any(|line| line.chars().nth(*x) == Some('#')))
+            .collect();
+        Universe {
+            galaxies,
+            empty_column_indices,
+            empty_row_indices,
+        }
     }
 }
 
