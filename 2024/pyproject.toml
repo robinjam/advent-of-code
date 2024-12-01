@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "2024"
+version = "0.1.0"
+description = ""
+authors = ["James Robinson <james@robinjam.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
